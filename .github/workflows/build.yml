@@ -1,27 +1,74 @@
-name: Build Net-SNMP for Windows
+name: Build Net-SNMP for Windows (MSYS2 + MinGW-w64)
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ master, main ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:          # 手动触发
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}      # 所有 run 步骤默认用 MSYS2 shell
 
     steps:
-      - name: 检出代码
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: 编译 (MSVC x64 Dynamic)
-        shell: cmd
-        run: |
-          set BUILD=MSVCDYNAMIC64
-          set "VCVARSPATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build"
-          ci\build.bat
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: |
+            make
+            diffutils
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-openssl
 
-      - name: 上传产物
+      - name: Configure
+        run: |
+          ./configure \
+            --host=x86_64-w64-mingw32 \
+            --build=x86_64-w64-mingw32 \
+            --with-endianness=little \
+            --with-openssl=/mingw64 \
+            --disable-embedded-perl \
+            --without-perl-modules \
+            --disable-agent
+
+      - name: Make
+        run: make -j$(nproc)
+
+      - name: Collect executables
+        run: |
+          mkdir -p dist
+          cp apps/.libs/snmpget.exe        dist/
+          cp apps/.libs/snmpset.exe        dist/
+          cp apps/.libs/snmpwalk.exe       dist/
+          cp apps/.libs/snmpbulkget.exe    dist/
+          cp apps/.libs/snmpbulkwalk.exe   dist/
+          cp apps/.libs/snmptrap.exe       dist/
+          cp apps/.libs/snmptable.exe      dist/
+          cp apps/.libs/snmptranslate.exe  dist/
+          cp apps/.libs/snmpdelta.exe      dist/
+          cp apps/.libs/snmpstatus.exe     dist/
+          cp apps/.libs/snmpdf.exe         dist/
+          cp apps/.libs/snmpping.exe       dist/
+          cp apps/.libs/snmptest.exe       dist/
+          cp apps/.libs/snmpusm.exe        dist/
+          cp apps/.libs/snmpvacm.exe       dist/
+          cp apps/.libs/snmpps.exe         dist/
+          cp apps/.libs/snmpgetnext.exe    dist/
+          cp apps/.libs/encode_keychange.exe dist/
+          cp apps/snmpnetstat/.libs/snmpnetstat.exe dist/
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: net-snmp-windows-x64
-          path: win32\bin\release\
+          name: net-snmp-win64
+          path: dist/
