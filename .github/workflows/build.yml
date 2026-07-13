@@ -18,20 +18,20 @@ jobs:
         run: |
           choco install -y winflexbison openssl strawberryperl
 
-      - name: 配置 MSVC 环境
-        shell: powershell
-        run: |
-          & "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
+      - name: 安装 MSVC 编译工具链
+        uses: microsoft/setup-msbuild@v2
 
       - name: 配置编译 (MSVC x64)
         shell: cmd
         run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
           cd win32
           perl build.pl --config=Release --arch=x64 --dynamic
 
       - name: 编译
         shell: cmd
         run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
           cd win32
           nmake /f Makefile-apps.in
 
