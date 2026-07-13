@@ -1,0 +1,41 @@
+name: Build Net-SNMP for Windows
+
+on:
+  workflow_dispatch:   # 手动触发
+  push:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装编译依赖
+        run: |
+          choco install -y winflexbison openssl
+          choco install -y strawberryperl
+
+      - name: 配置 (MSVC x64 Dynamic)
+        run: |
+          cd win32
+          perl build.pl --config=Release --arch=x64 --dynamic
+
+      - name: 编译
+        run: |
+          cd win32
+          nmake /f Makefile-apps.in
+
+      - name: 收集编译产物
+        run: |
+          mkdir _output
+          copy win32\bin\release\*.exe _output\
+          dir _output
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: net-snmp-windows-x64
+          path: _output/
