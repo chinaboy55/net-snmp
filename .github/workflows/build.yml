@@ -13,15 +13,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 设置 VS 环境变量
-        shell: cmd
-        run: |
-          set "VCVARSPATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build"
-
       - name: 编译 (MSVC x64 Dynamic)
         shell: cmd
         run: |
           set BUILD=MSVCDYNAMIC64
+          set "VCVARSPATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build"
           ci\build.bat
 
       - name: 上传产物
