@@ -13,9 +13,10 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装 OpenSSL
+      - name: 设置 VS 环境变量
         shell: cmd
-        run: ci\openssl.bat
+        run: |
+          set "VCVARSPATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build"
 
       - name: 编译 (MSVC x64 Dynamic)
         shell: cmd
