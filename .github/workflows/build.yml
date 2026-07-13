@@ -13,28 +13,18 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装编译依赖
-        shell: powershell
-        run: |
-          choco install -y winflexbison openssl strawberryperl
+      - name: 安装 OpenSSL
+        shell: cmd
+        run: ci\openssl.bat
 
       - name: 编译 (MSVC x64 Dynamic)
         shell: cmd
         run: |
           set BUILD=MSVCDYNAMIC64
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x64
-          cd win32
-          perl build.pl
-
-      - name: 收集编译产物
-        shell: powershell
-        run: |
-          New-Item -ItemType Directory -Force -Path _output
-          Copy-Item win32\bin\release\*.exe _output\
-          Get-ChildItem _output
+          ci\build.bat
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: net-snmp-windows-x64
-          path: _output/
+          path: win32\bin\release\
