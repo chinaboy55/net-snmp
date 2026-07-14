@@ -32,7 +32,6 @@ jobs:
 
       - name: Configure
         run: |
-          export LDFLAGS="-static -static-libgcc"
           ./configure \
             --host=x86_64-w64-mingw32 \
             --build=x86_64-w64-mingw32 \
@@ -43,7 +42,7 @@ jobs:
             --disable-agent
 
       - name: Make
-        run: make -j$(nproc)
+        run: make -j$(nproc) LDFLAGS="-static -static-libgcc"
 
       - name: Collect executables
         run: |
