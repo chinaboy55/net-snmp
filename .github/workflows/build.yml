@@ -42,30 +42,27 @@ jobs:
             --disable-agent
 
       - name: Make
-        run: make -j$(nproc) LDFLAGS="-static -static-libgcc"
+        run: make -j$(nproc) LDFLAGS="-static"
 
       - name: Collect executables
         run: |
           mkdir -p dist
-          cp apps/.libs/snmpget.exe        dist/
-          cp apps/.libs/snmpset.exe        dist/
-          cp apps/.libs/snmpwalk.exe       dist/
-          cp apps/.libs/snmpbulkget.exe    dist/
-          cp apps/.libs/snmpbulkwalk.exe   dist/
-          cp apps/.libs/snmptrap.exe       dist/
-          cp apps/.libs/snmptable.exe      dist/
-          cp apps/.libs/snmptranslate.exe  dist/
-          cp apps/.libs/snmpdelta.exe      dist/
-          cp apps/.libs/snmpstatus.exe     dist/
-          cp apps/.libs/snmpdf.exe         dist/
-          cp apps/.libs/snmpping.exe       dist/
-          cp apps/.libs/snmptest.exe       dist/
-          cp apps/.libs/snmpusm.exe        dist/
-          cp apps/.libs/snmpvacm.exe       dist/
-          cp apps/.libs/snmpps.exe         dist/
-          cp apps/.libs/snmpgetnext.exe    dist/
-          cp apps/.libs/encode_keychange.exe dist/
-          cp apps/snmpnetstat/.libs/snmpnetstat.exe dist/
+          # 静态链接后 exe 在 apps/ 目录下（不在 .libs/）
+          for f in snmpget snmpset snmpwalk snmpbulkget snmpbulkwalk \
+                   snmptrap snmptable snmptranslate snmpdelta snmpstatus \
+                   snmpdf snmpping snmptest snmpusm snmpvacm snmpps \
+                   snmpgetnext encode_keychange; do
+            if [ -f apps/.libs/$f.exe ]; then
+              cp apps/.libs/$f.exe dist/
+            elif [ -f apps/$f.exe ]; then
+              cp apps/$f.exe dist/
+            fi
+          done
+          if [ -f apps/snmpnetstat/.libs/snmpnetstat.exe ]; then
+            cp apps/snmpnetstat/.libs/snmpnetstat.exe dist/
+          elif [ -f apps/snmpnetstat/snmpnetstat.exe ]; then
+            cp apps/snmpnetstat/snmpnetstat.exe dist/
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
